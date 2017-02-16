@@ -1,4 +1,4 @@
-function [rms, dBs] = toneResponse_KWppiSC(freqs, amp, nReps, FILT, pa)
+function [rms, dBs] = toneResponse_SC(freqs, amp, nReps, FILT, pa)
 
 rms = zeros(1, length(freqs));
 tLen = 0.2; % .2s tone + ramps = .4s tone
@@ -6,7 +6,7 @@ tLen = 0.2; % .2s tone + ramps = .4s tone
 
 disp('Acquiring 3s of background noise:');
 stim = zeros(1,3*pa.fs);
-b = getResponse_sess_KWppiSC(stim,1,pa);
+b = getResponse_sess_SC(stim,1,pa);
 b = filter(fb, fa, b) / pa.ref_Pa / pa.VperPa;
 b = b - mean(b);
 noise_ms = mean(b.^2);
@@ -25,7 +25,7 @@ for fInd = 1:length(freqs)
     tonef = conv(t,FILT,'same');
 %     tonef = filter(FILT, 1, t);
 %     tonef= tonef.*10^(-(10/20));
-    [resp,~,~,dB] = getResponse_sess_KWppiSC(tonef, nReps, pa);
+    [resp,~,~,dB] = getResponse_sess_SC(tonef, nReps, pa);
     respf = filtfilt(fb,fa,resp);
     respf = respf(rampTime:(end-rampTime));
     respf = respf(15000:30000);

@@ -1,4 +1,4 @@
-function [reps, P, f, dB] = getResponse_sess_KWppiSC(stim, nreps, s)
+function [reps, P, f, dB] = getResponse_sess_SC(stim, nreps, s)
 
 stim = stim/11;
 % Some checks
@@ -11,7 +11,8 @@ end
 
 for i = 1:nreps
     disp(['Rep ' num2str(i) '/' num2str(nreps)])
-    output = [zeros(1,length(stim));stim];
+%     output = [zeros(1,length(stim));stim];
+    output = stim;
     PsychPortAudio('FillBuffer', s.h, output); % fill buffer
     t.play = PsychPortAudio('Start', s.h, 1);
     % Grab the data in the buffer at the end

@@ -1,10 +1,10 @@
 For running speaker calibrations...
 
-Run('C:\Users\Maria\Documents\MATLAB\Calibration\20160921_PPIspkrCalibration\setupAndCalibrate_KW_PPIchamberSoundCard.m')
+run setupAndCalibrate_SoundCard.m')
 
-This creates a filter for the sound card.  The sound card requires a correction of X11 (built into the above code).
+This creates a filter for the LYNX sound cards.  These sound cards requires a correction of X11 (built into the above code).
 
-NB. You must divide your outputs by 11.  Use the function, presentStim.m for this to be automatic.
+NB. You must divide your outputs by 11 before you present them. 
 
 - FILT output is the filter
 
