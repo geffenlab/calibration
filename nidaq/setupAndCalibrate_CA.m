@@ -12,7 +12,7 @@ fs = 400e3;
 s = startSession(fs);
 fs = s.Rate;
 
-n = 10;
+n = 1;
 offset = 10; % this is for when the output is too loud for the nidaq
 targetVol = 70-offset;
 upperFreq = 70e3;
