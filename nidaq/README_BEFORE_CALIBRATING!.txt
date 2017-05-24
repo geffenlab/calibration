@@ -23,4 +23,9 @@ When using this code, one does NOT need to correct the rms of the noise by the s
 
 the sqrt(2) factor should never be corrected for when calculating the rms of tones.
 
+Regarding the B&K 1000Hz Type 4231 signal generator:
+low level == 94dB
+high level == 114 dB
+
+
 

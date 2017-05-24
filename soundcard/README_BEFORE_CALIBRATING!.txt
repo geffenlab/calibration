@@ -8,5 +8,9 @@ NB. You must divide your outputs by 11 before you present them.
 
 - FILT output is the filter
 
+Regarding the B&K 1000Hz Type 4231 signal generator:
+low level == 94dB
+high level == 114 dB
+
 
 
