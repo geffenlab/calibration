@@ -5,7 +5,7 @@ function softwareAnalogTriggerCaptureSave
 %   trigger condition.
 
 % setup non-ASIO LYNX card
-device = '2- Lynx E44';
+device = 'Lynx E44';
 d = daq.getDevices;
 description = sprintf('DirectSound Record 01+02 (%s)',device);
 ind = find(strcmp({d.Description},description));
