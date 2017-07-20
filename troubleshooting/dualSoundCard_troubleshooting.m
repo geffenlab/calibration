@@ -22,6 +22,6 @@ RMS = sqrt(mean((df/rPa/vpPa).^2) - noise_ms);
 db = 20*log10(RMS)
 
 
-d = load('sineTest-booth2.mat');
+d = load('sineTest-booth3.mat');
 d = d.saveData(1,:);
 ampF = 1/max(d);
