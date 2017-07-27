@@ -3,11 +3,11 @@ close all
 fs = 192e3;
 %noise = randn(round(fs), 1)'/50;
 noise = [zeros(1,fs) ones(1,fs)];
-noise = repmat(noise,1,5)/11;
+noise = repmat(noise,1,5)/2;
 
 d = daq.getDevices;
+ind = find(strcmp({d.Description},'DirectSound Speakers (Lynx E44)'));
 %ind = find(strcmp({d.Description},'DirectSound Speakers (Lynx E44)'));
-ind = find(strcmp({d.Description},'DirectSound Play 03+04 (Lynx E44)'));
 dev = d(ind);
 
 s = daq.createSession('directsound');
@@ -25,3 +25,4 @@ for i = 1
     toc
     startForeground(s);
 end
+    
