@@ -8,6 +8,21 @@ General Procedure:
 3. recordCalibrationStim.m plays the stimuli,
 softwareAnalogTriggerCaptureSave.m records the stimuli
 
+** BEFORE STARTING **
+You need to make sure that windows is using the desired sample rate. For some reason, 
+Matlab's specification of the sample rate is overridden by the windows settings.
+(it sucks, because matlab will say it is playing/recording at the sample rate you ask of it, 
+but the actual recording rates are controlled by the rate setting in windows)
+
+To check this:
+1. Right click the sound icon on the left side of the windows toolbar
+2. Click Playback Devices. Click Speakers (Lynx E44) and go to properties>advanced tab
+3. Under default format, set this to 16 bit, 192000 Hz; hit apply and OK
+4. Repeat steps 2-3 for Speakers (2- Lynx E44)
+5. Repeat steps 1-4, but click Recording Devices and adjust advanced settings for
+Record 01 + 02 (for each card, 2- Lynx E44 and Lynx E44) to 2 channel, 16 bit, 192000 Hz
+
+
 Specific Procedure:
 1. Open two instances of matlab, one running softwareAnalogTriggerCaptureSave.m,
 the other running recordCalibrationStim.m
