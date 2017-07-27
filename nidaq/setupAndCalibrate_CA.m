@@ -27,7 +27,7 @@ disp('Testing flat noise');
 % stim = softGain * randn(fs, 1)/sqrt(2)/10; % the sqrt factor was added
 % incorrectly originally to compensate for SPL conversions between noise and
 % tones.  Now compensation happens in getResponse_sess
-stim = softGain * randn(round(fs), 1)/10;
+stim = softGain * randn(round(fs*20), 1)/10;
 stim = stim.*10^(-(offset/20));
 [resp, P, f, dB] = getResponse_sess(stim,n,s);
 resp = mean(resp);
