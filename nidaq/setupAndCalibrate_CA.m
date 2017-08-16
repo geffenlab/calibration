@@ -5,6 +5,7 @@ function [FILT, fs, s] = setupAndCalibrate_CA
 % speakers frequency response function
 % NOTE1: if you're savvy and know that to convert between DBspl of noise and DBspl
 % of a pure tone, see notes about sqrt(2) conversion in makeFilter.m
+delete(instrfindall);
 close all
 clear all
 
@@ -12,10 +13,10 @@ fs = 400e3;
 s = startSession(fs);
 fs = s.Rate;
 
-n = 1;
-offset = 10; % this is for when the output is too loud for the nidaq
+n = 5;
+offset = 0; % this is for when the output is too loud for the nidaq
 targetVol = 70-offset;
-upperFreq = 70e3;
+upperFreq = 80e3;
 lowerFreq = 3000;
 softGain = 10;
 ref_PA = 20e-6;
@@ -49,11 +50,11 @@ disp(['Total volume ' num2str(10*log10(mean(P(1:180))*(f(180)-f(1))))...
  disp(['Total volume ' num2str(20*log10(rms(mean(resp)/ref_PA/volts_per_PA)))...
      'dB in response to flat noise.']);
 
-toneFs = 3500:5000:66000;
+toneFs = 3500:5000:80000;
 [RMS, dBs] = toneResponse(toneFs, .1 * softGain, 1, FILT, s);
 toneDB = real( 20*log10(RMS) );
 plot(toneFs, toneDB, 'ok');
 hold off
 
 %
-% save('C:\calibration\Filters\20160825_2PspkrNidaqInvFilt_3k-70k_fs100k.mat','FILT')
+% save('E:\calibration\Filters\20170711_2PspkrNidaqInvFilt_3k-80k_fs400k.mat','FILT')

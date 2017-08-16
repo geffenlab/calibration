@@ -21,7 +21,7 @@ n = 10;
 % SCoffset = 10;
 io.dur = 2;
 targetVol = 70;
-upperFreq = 80e3;
+upperFreq = 70e3;
 lowerFreq = 3000;
 softGain = 10;
 ref_PA = 20e-6;
@@ -62,7 +62,9 @@ toneio.freqs = 3500:10000:100000;
 [RMS, dBs] = toneResponse_SC(toneio.freqs, .1 * softGain, 1, FILT, io);
 toneDB = real( 20*log10(RMS) );
 plot(toneio.freqs, toneDB, 'ok');
+legend('Unfiltered Noise','Filtered Noise','Filtered Tones');
 hold off
 
 %
-save(C:\calibration\Filters\20170109_upperBoothRightSpkrInvFilt_3k-80k_fs192k.mat','FILT_RIGHT')
+keyboard
+save('C:\calibration\Filters\20170109_upperBoothRightSpkrInvFilt_3k-80k_fs192k.mat','FILT_RIGHT')
