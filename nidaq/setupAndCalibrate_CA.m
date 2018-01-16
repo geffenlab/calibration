@@ -10,7 +10,9 @@ close all
 clear all
 
 fs = 400e3;
-s = startSession(fs);
+inputChannel = 1;
+outputChannel = 0;
+s = startSession(fs,inputChannel,outputChannel);
 fs = s.Rate;
 
 n = 1;
