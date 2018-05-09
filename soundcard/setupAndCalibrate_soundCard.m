@@ -21,7 +21,7 @@ n = 10;
 % SCoffset = 10;
 io.dur = 2;
 targetVol = 70;
-upperFreq = 70e3;
+upperFreq = 80e3;
 lowerFreq = 3000;
 softGain = 10;
 ref_PA = 20e-6;
@@ -40,7 +40,7 @@ stim = softGain * randn(round(io.fs), 1)/10;
 % stim = stim.*10^(-(offset/20));
 [resp, P, f, dB] = getResponse_sess_SC(stim,n,io);
 resp = mean(resp);
-figure(1); hold on
+f1 = figure(1); hold on
 plot(f,dB,'r');
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
@@ -62,9 +62,17 @@ toneio.freqs = 3500:10000:100000;
 [RMS, dBs] = toneResponse_SC(toneio.freqs, .1 * softGain, 1, FILT, io);
 toneDB = real( 20*log10(RMS) );
 plot(toneio.freqs, toneDB, 'ok');
-legend('Unfiltered Noise','Filtered Noise','Filtered Tones');
+xlabel('Frequency (kHz)')
+ylabel('Power (dB)')
+legend('unfiltered gaussian noise','filtered noise','tones','location','sw');
+set(gca,'FontSize',12);
+set(gca,'TickDir','out');
 hold off
 
 %
 keyboard
-save('C:\calibration\Filters\20170109_upperBoothRightSpkrInvFilt_3k-80k_fs192k.mat','FILT_RIGHT')
+fn = 'D:\GitHub\filters\180214_blueEbooth_LynxE44_3k-80k_fs192k';
+title(fn)
+Fs = fs;
+save(fn,'FILT','Fs');
+print(f1,[fn '.png'],'-dpng','-r300');
