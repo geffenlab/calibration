@@ -18,7 +18,6 @@
 % audio plays for much longer...
 
 clear; close all;
-pkg load signal
 %% Parameter
 %
 % These parameters determine everything that the script does. Thus, these
@@ -43,6 +42,12 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
 isOctave = true;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
+boothNumber = 7;        % Which booth we are calibrating, used to generate filter name
+
+%% Need to load signaling package if using Octave
+if isOctave
+    pkg load signal
+end
 
 %% Set up PTB audio
 %
@@ -52,9 +57,11 @@ isOctave = true;        % Boolean to tell if running from Octave. If true, resca
 
 InitializePsychSound;
 
-% Find appropriate device indices
+% Find appropriate device indices. Matlab is going to recommend using
+% 'contains' instead of 'emtpy(strfind())'. However, octave does not have
+% the 'contains' function, so this warning here is suppressed.
 devList = PsychPortAudio('GetDevices');
-windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'DirectSound')),{devList(:).HostAudioAPIName},'UniformOutput',false)));
+windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'DirectSound')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
@@ -189,6 +196,9 @@ for ii = 1:length(toneFs)
 end
 
 %% Record silence
+%
+% We briefly record some silence so that we can compare how loud our pure
+% tones are. Clear and initialize buffers on the recording device as usual.
 PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('GetAudioData',ph.recorder, toneDuration + recorderBuffer,toneDuration + recorderBuffer);
 t.rec  = PsychPortAudio('Start',ph.recorder,1);
@@ -196,6 +206,7 @@ tic; pause(toneDuration + recorderBuffer); toc
 [recSilence,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
+% Calculate RMS of silence for loudness
 [fb, fa] = butter(5, 2*300 / fs, 'high');
 b = recSilence * inGain / rPa / vpPa;
 b = filter(fb, fa, b);
@@ -204,6 +215,8 @@ b = b - mean(b);
 noise_ms = mean(b.^2);
 
 %% Plot pure tones
+%
+% Calculate loudness of each filtered pure tone. Subtract silence.
 RMS = zeros(size(recTones));
 for ii = 1:length(recTones)
     tonesf = filtfilt(fb,fa,recTones{ii});
@@ -215,3 +228,22 @@ plot(toneFs,db,'o')
 
 %% Close audio devices
 PsychPortAudio('Close');
+
+%% Save plots, filter, and data
+
+% filter filename
+thedate = ['-' datestr(now,'YYmmDD')];
+booth = ['booth' num2str(boothNumber)];
+filtername = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
+
+% Save filter and figure
+save(fn,'FILT')
+
+xlabel('Frequency (Hz)')
+ylabel('dB')
+legend('Gaussian Noise','Filtered Noise','Filtered Tones','Location','sw');
+title(['calibration ' booth thedate])
+print(fn,'-dpng');
+
+% 
+
