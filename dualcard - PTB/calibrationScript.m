@@ -18,6 +18,7 @@
 % audio plays for much longer...
 
 clear; close all;
+pkg load signal
 %% Parameter
 %
 % These parameters determine everything that the script does. Thus, these
@@ -41,6 +42,7 @@ inGain = 6;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
+isOctave = true;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
 
 %% Set up PTB audio
 %
@@ -52,7 +54,7 @@ InitializePsychSound;
 
 % Find appropriate device indices
 devList = PsychPortAudio('GetDevices');
-windowsDSIdx = find(cell2mat(cellfun(@(X)contains(X,'DirectSound'),{devList(:).HostAudioAPIName},'UniformOutput',false)));
+windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'DirectSound')),{devList(:).HostAudioAPIName},'UniformOutput',false)));
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
@@ -107,7 +109,8 @@ dataForFilter = recWhiteNoise(fs : length(recWhiteNoise) - 2*fs);
 % Below is code copied from 'recordCalibrationStim' in the dual card
 % folder. Not sure what it does exactly, but it makes the filter...
 noiseAdj = dataForFilter(1,1000:end-1000) * inGain / rPa / vpPa;
-[P,f] = pwelch(noiseAdj,1024,120,[],fs,'onesided');
+overlapScale = isOctave * 1024 + ~isOctave * 1;
+[P,f] = pwelch(noiseAdj,1024,120/overlapScale,[],fs,'onesided');
 dB = 10*log10(P);
 f1 = figure(1); clf; hold on
 plot(f,dB);
@@ -118,7 +121,7 @@ disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
 FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 
 %% Step 2
-% 
+%
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
 whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
@@ -145,7 +148,7 @@ PsychPortAudio('Stop',ph.recorder);
 % Plot resulting spectra. Similar to when computing the filter.
 dataForFilter = recFiltNoise(fs : length(recFiltNoise) - 2*fs);
 noiseAdj = dataForFilter(1,1000:end-1000) * inGain / rPa / vpPa;
-[P,f] = pwelch(noiseAdj,1024,120,[],fs,'onesided');
+[P,f] = pwelch(noiseAdj,1024,120/overlapScale,[],fs,'onesided');
 dB = 10*log10(P);
 plot(f,dB);
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
@@ -156,6 +159,59 @@ disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
 % We generate a series of filtered pure tones to play and record. These
 % tones will be within the frequency range of our filter (specified in the
 % parameters at the top of the script).
+
+toneFs = 3500:5000:65000;
+toneDuration = 2;
+recTones = cell(length(toneFs),1);
+for ii = 1:length(toneFs)
+    
+    % Generate tone and print a status update to let us know what's going
+    % on!
+    f = toneFs(ii);
+    fprintf('Playing tone %02d/%02d @ %dHz\n',ii,length(toneFs),f);
+    tonef = tone(f,1,toneDuration,fs);
+    tonef = envelopeKCW(tonef,5,fs);%.*10^(-(10/20));
+    tonef = conv(tonef,FILT,'same') / outGain;
+    
+    % Buffer up playback and recording
+    PsychPortAudio('FillBuffer',ph.player,tonef);
+    PsychPortAudio('GetAudioData',ph.recorder);
+    PsychPortAudio('GetAudioData',ph.recorder, toneDuration + recorderBuffer,toneDuration + recorderBuffer);
+    
+    % Record and play
+    t.rec  = PsychPortAudio('Start',ph.recorder,1);
+    t.play = PsychPortAudio('Start',ph.player,1);
+    
+    % Gather data and stop recorder
+    tic; pause(toneDuration + recorderBuffer); toc
+    [recTones{ii},~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
+    PsychPortAudio('Stop',ph.recorder);
+end
+
+%% Record silence
+PsychPortAudio('GetAudioData',ph.recorder);
+PsychPortAudio('GetAudioData',ph.recorder, toneDuration + recorderBuffer,toneDuration + recorderBuffer);
+t.rec  = PsychPortAudio('Start',ph.recorder,1);
+tic; pause(toneDuration + recorderBuffer); toc
+[recSilence,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
+PsychPortAudio('Stop',ph.recorder);
+
+[fb, fa] = butter(5, 2*300 / fs, 'high');
+b = recSilence * inGain / rPa / vpPa;
+b = filter(fb, fa, b);
+b = b(.25*fs:end);
+b = b - mean(b);
+noise_ms = mean(b.^2);
+
+%% Plot pure tones
+RMS = zeros(size(recTones));
+for ii = 1:length(recTones)
+    tonesf = filtfilt(fb,fa,recTones{ii});
+    RMS(ii) = sqrt(mean( (tonesf(0.5 * fs:end-2*fs) * inGain/rPa/vpPa).^2)...
+        - noise_ms);
+end
+db = real( 20*log10(RMS) );
+plot(toneFs,db,'o')
 
 %% Close audio devices
 PsychPortAudio('Close');
