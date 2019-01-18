@@ -52,7 +52,7 @@ disp(['Total volume ' num2str(10*log10(mean(P(1:180))*(f(180)-f(1))))...
      'dB in response to flat noise.']);
  
 daqreset;
-s = startSession(fs);
+s = startSession(fs,input,output);
 fs = s.Rate;
 pause(1);
 
