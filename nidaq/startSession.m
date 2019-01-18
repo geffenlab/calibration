@@ -1,10 +1,10 @@
-function s = startSession(fs)
+function s = startSession(fs,input,output)
 
 s = daq.createSession('ni');
 
 s.Rate = fs;
 
-ai=addAnalogInputChannel(s,'dev1',1,'Voltage');
-ao=addAnalogOutputChannel(s,'dev1',0,'Voltage');
+ai=addAnalogInputChannel(s,'dev1',input,'Voltage');
+ao=addAnalogOutputChannel(s,'dev1',output,'Voltage');
 
 s.Channels(1).InputType = 'SingleEnded';
