@@ -9,6 +9,16 @@ General Procedure:
 softwareAnalogTriggerCaptureSave.m records the stimuli
 
 ** BEFORE STARTING **
+Install Lynx drivers.
+1. If drivers are already installed, uninstall them.
+2. Reboot, and then install driver build 23b: https://www.lynxstudio.com/downloads/aes16e/windows-driver-v2-build-23b/
+3. Download and install the firmware updater: https://www.lynxstudio.com/downloads/aes16e/firmware-updater-20150225-for-pcie-aes16e-e22-e44-and-thunderbolt/
+4. Run the firmware update, selecting card 1 (it will ask for a serial number, this can be found on the card or on the box).
+5. Shut down when prompted, power back on.
+6. Run the firmware update again, selecting card 2. Shut down and restart the computer again.
+7. Open the Lynx Mixer and set the sample rate (clock source) to 192kHz for each card (each card will have its own tab on the left).
+8. Install Matlab suppot package to run soundcards: https://www.mathworks.com/hardware-support/sound-card-daq.html
+
 You need to make sure that windows is using the desired sample rate. For some reason, 
 Matlab's specification of the sample rate is overridden by the windows settings.
 (it sucks, because matlab will say it is playing/recording at the sample rate you ask of it, 

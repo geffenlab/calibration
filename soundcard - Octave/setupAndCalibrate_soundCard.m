@@ -7,7 +7,9 @@ function [FILT, fs] = setupAndCalibrate_soundCard
 % of a pure tone, see notes about sqrt(2) conversion in makeFilter.m
 close all
 clear all
-clc
+%clc
+
+pkg load signal
 
 io.fs = 192e3;
 fs = io.fs;
@@ -71,8 +73,9 @@ hold off
 
 %
 keyboard
-fn = 'D:\GitHub\filters\180214_blueEbooth_LynxE44_3k-80k_fs192k';
+thedate = datestr(now,'YYmmDD');
+fn = fullfile(pwd,[thedate '_LynxE44_3k-80k_fs192k']);
 title(fn)
 Fs = fs;
-save(fn,'FILT','Fs');
+save('-v6',fn,'FILT','Fs');
 print(f1,[fn '.png'],'-dpng','-r300');

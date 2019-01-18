@@ -3,8 +3,8 @@
 n = 1;
 offset = 0;
 targetVol = 70-offset;
-upperFreq = 70e3;
-lowerFreq = 400;
+upperFreq = 30e3;
+lowerFreq = 10e3;
 fs = 192e3;
 rPa=20e-6;
 vpPa=0.316;
