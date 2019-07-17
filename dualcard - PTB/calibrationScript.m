@@ -61,7 +61,7 @@ InitializePsychSound;
 % 'contains' instead of 'emtpy(strfind())'. However, octave does not have
 % the 'contains' function, so this warning here is suppressed.
 devList = PsychPortAudio('GetDevices');
-windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'DirectSound')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
+windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'MME')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
@@ -101,7 +101,7 @@ t.play = PsychPortAudio('Start',ph.player,1);
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
-tic; pause(testSoundDuration + 5); toc
+tic; WaitSecs(testSoundDuration); toc
 [recWhiteNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
@@ -132,7 +132,7 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
 whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
-whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
+whiteNoiseFilt = filter(FILT, 1, whiteNoiseFilt);
 
 % Now to refill the audio buffers. Not that we need to flush the recording
 % buffer first by making another call to 'GetAudioData' before
@@ -148,7 +148,7 @@ t.play = PsychPortAudio('Start',ph.player,1);
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
-tic; pause(testSoundDuration + 2); toc
+tic; WaitSecs(testSoundDuration); toc
 [recFiltNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
@@ -237,13 +237,13 @@ booth = ['booth' num2str(boothNumber)];
 filtername = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
 
 % Save filter and figure
-save(fn,'FILT')
+save('-6',[filtername '.mat'],'FILT')
 
 xlabel('Frequency (Hz)')
 ylabel('dB')
-legend('Gaussian Noise','Filtered Noise','Filtered Tones','Location','sw');
+legend('Gaussian Noise','Filtered Noise','Filtered Tones','Location','southwest');
 title(['calibration ' booth thedate])
-print(fn,'-dpng');
+print(filtername,'-dpng');
 
 % 
 
