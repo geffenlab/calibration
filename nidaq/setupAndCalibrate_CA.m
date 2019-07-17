@@ -10,9 +10,9 @@ close all
 clear all
 
 fs = 400e3;
-inputChannel = 1;
-outputChannel = 0;
-s = startSession(fs,inputChannel,outputChannel);
+input = 3;
+output = 1;
+s = startSession(fs,input,output);
 fs = s.Rate;
 
 n = 1;
@@ -52,7 +52,7 @@ disp(['Total volume ' num2str(10*log10(mean(P(1:180))*(f(180)-f(1))))...
      'dB in response to flat noise.']);
  
 daqreset;
-s = startSession(fs,inputChannel,outputChannel);
+s = startSession(fs,input,output);
 fs = s.Rate;
 pause(1);
 
