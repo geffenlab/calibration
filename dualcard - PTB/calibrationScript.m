@@ -36,7 +36,7 @@ lowerFreq = 3e3;        % Lower freq cutoff for filter
 upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
 fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
-vpPa=0.316;             % Volts/Pascal conversion to get dB
+vpPa=.316;             % Volts/Pascal conversion to get dB
 inGain = 6;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
@@ -85,7 +85,7 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % Create a random white noise tone. PTB accepts matrices of sound data
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
-whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
+whiteNoiseTone = (randn(1,fs*testSoundDuration)*2-1) / outGain;
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 
 % Pre-allocate buffer for recorder. This is done via the 'GetAudioData'
@@ -131,7 +131,7 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 %
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
-whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
+whiteNoiseFilt = (randn(1,fs*testSoundDuration)*2-1) / outGain;
 whiteNoiseFilt = filter(FILT, 1, whiteNoiseFilt);
 
 % Now to refill the audio buffers. Not that we need to flush the recording
