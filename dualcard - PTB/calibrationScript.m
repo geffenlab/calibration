@@ -36,8 +36,8 @@ lowerFreq = 3e3;        % Lower freq cutoff for filter
 upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
 fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
-vpPa=.316;             % Volts/Pascal conversion to get dB
-inGain = 6;             % Mic multiplies input by 6 (?)
+vpPa=.316;              % Volts/Pascal conversion to get dB
+inGain = 11;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
@@ -85,7 +85,7 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % Create a random white noise tone. PTB accepts matrices of sound data
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
-whiteNoiseTone = (randn(1,fs*testSoundDuration)*2-1) / outGain;
+whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 
 % Pre-allocate buffer for recorder. This is done via the 'GetAudioData'
@@ -101,7 +101,7 @@ t.play = PsychPortAudio('Start',ph.player,1);
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
-tic; WaitSecs(testSoundDuration); toc
+tic; WaitSecs(testSoundDuration + recorderBuffer); toc
 [recWhiteNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
@@ -131,8 +131,8 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 %
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
-whiteNoiseFilt = (randn(1,fs*testSoundDuration)*2-1) / outGain;
-whiteNoiseFilt = filter(FILT, 1, whiteNoiseFilt);
+whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
+whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
 
 % Now to refill the audio buffers. Not that we need to flush the recording
 % buffer first by making another call to 'GetAudioData' before
@@ -148,7 +148,7 @@ t.play = PsychPortAudio('Start',ph.player,1);
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
-tic; WaitSecs(testSoundDuration); toc
+tic; WaitSecs(testSoundDuration + recorderBuffer); toc
 [recFiltNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
@@ -177,8 +177,8 @@ for ii = 1:length(toneFs)
     f = toneFs(ii);
     fprintf('Playing tone %02d/%02d @ %dHz\n',ii,length(toneFs),f);
     tonef = tone(f,1,toneDuration,fs);
-    tonef = envelopeKCW(tonef,5,fs);%.*10^(-(10/20));
-    tonef = conv(tonef,FILT,'same') / outGain;
+    tonef = envelopeKCW(tonef,5,fs) / outGain;
+    tonef = conv(tonef,FILT,'same');
     
     % Buffer up playback and recording
     PsychPortAudio('FillBuffer',ph.player,tonef);
@@ -208,8 +208,8 @@ PsychPortAudio('Stop',ph.recorder);
 
 % Calculate RMS of silence for loudness
 [fb, fa] = butter(5, 2*300 / fs, 'high');
-b = recSilence * inGain / rPa / vpPa;
-b = filter(fb, fa, b);
+b = filter(fb, fa, recSilence * inGain);
+b = b / rPa / vpPa;
 b = b(.25*fs:end);
 b = b - mean(b);
 noise_ms = mean(b.^2);
@@ -219,8 +219,8 @@ noise_ms = mean(b.^2);
 % Calculate loudness of each filtered pure tone. Subtract silence.
 RMS = zeros(size(recTones));
 for ii = 1:length(recTones)
-    tonesf = filtfilt(fb,fa,recTones{ii});
-    RMS(ii) = sqrt(mean( (tonesf(0.5 * fs:end-2*fs) * inGain/rPa/vpPa).^2)...
+    tonesf = filtfilt(fb,fa,recTones{ii} * inGain);
+    RMS(ii) = sqrt(mean( (tonesf(0.5 * fs:end-2*fs)/rPa/vpPa).^2)...
         - noise_ms);
 end
 db = real( 20*log10(RMS) );
