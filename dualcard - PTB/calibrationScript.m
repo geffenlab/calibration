@@ -28,8 +28,8 @@ clear; close all;
 % array output from the PsychPortAudio('GetDevices') subfunction. Pair
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
-playbackDevice = 'Speakers (Lynx E44)';
-recordingDevice = 'Record 01+02 (2- Lynx E44)';
+playbackDevice = 'Speakers (2- Lynx E44)';
+recordingDevice = 'Record 01+02 (Lynx E44)';
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
@@ -42,7 +42,7 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
 isOctave = true;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 7;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 10;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
