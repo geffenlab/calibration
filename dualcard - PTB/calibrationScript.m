@@ -28,8 +28,8 @@ clear; close all;
 % array output from the PsychPortAudio('GetDevices') subfunction. Pair
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
-playbackDevice = 'Speakers (Lynx E44)';
-recordingDevice = 'Record 01+02 (2- Lynx E44)';
+playbackDevice = 'Speakers (2- Lynx E44)';
+recordingDevice = 'Record 01+02 (Lynx E44)';
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
@@ -238,7 +238,7 @@ booth = ['booth' num2str(boothNumber)];
 filtername = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
 
 % Save filter and figure
-save('-6',[filtername '.mat'],'FILT')
+save([filtername '.mat'],'FILT')
 
 xlabel('Frequency (Hz)')
 ylabel('dB')
