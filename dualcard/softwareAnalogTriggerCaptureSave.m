@@ -21,7 +21,7 @@ s.Rate = 192e3;
 % as this makes it simpler to pass them as a function argument.
 
 % Specify triggered capture timespan, in seconds
-capture.TimeSpan = 1;
+capture.TimeSpan = 10;
 
 % Specify continuous data plot timespan, in seconds
 capture.plotTimeSpan = 1.00;
@@ -209,10 +209,6 @@ drawnow;
 end
 
 
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function hGui = createDataCaptureUI(s)
 %CREATEDATACAPTUREUI Create a graphical user interface for data capture.
@@ -266,7 +262,7 @@ hGui.VarName = uicontrol('style', 'edit', 'string', 'file.mat',...
 hGui.TrigChannel = uicontrol('style', 'edit', 'string', '1',...
     'units', 'pixels', 'position', [89 258 56 24]);
 % Create an editable text field for the trigger signal level
-hGui.TrigLevel = uicontrol('style', 'edit', 'string', '.001',...
+hGui.TrigLevel = uicontrol('style', 'edit', 'string', '.05',...
     'units', 'pixels', 'position', [89 231 56 24]);
 % Create an editable text field for the trigger signal slope
 hGui.TrigSlope = uicontrol('style', 'edit', 'string', '200.0',...

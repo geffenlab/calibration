@@ -28,8 +28,8 @@ clear; close all;
 % array output from the PsychPortAudio('GetDevices') subfunction. Pair
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
-playbackDevice = 'Speakers (2- Lynx E44)';
-recordingDevice = 'Record 01+02 (Lynx E44)';
+playbackDevice = 'Speakers (Lynx E44)';
+recordingDevice = 'Record 01+02 (2- Lynx E44)';
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
@@ -37,12 +37,12 @@ upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio bet
 fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
 vpPa=.316;              % Volts/Pascal conversion to get dB
-inGain = 11;             % Mic multiplies input by 6 (?)
+inGain = 6;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
-isOctave = true;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 10;        % Which booth we are calibrating, used to generate filter name
+isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
+boothNumber = 4;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -148,6 +148,7 @@ t.play = PsychPortAudio('Start',ph.player,1);
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
+
 tic; WaitSecs(testSoundDuration + recorderBuffer); toc
 [recFiltNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);

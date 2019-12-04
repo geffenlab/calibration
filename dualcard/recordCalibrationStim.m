@@ -3,8 +3,8 @@
 n = 1;
 offset = 0;
 targetVol = 70-offset;
-upperFreq = 30e3;
-lowerFreq = 10e3;
+upperFreq = 70e3;
+lowerFreq = 3e3;
 fs = 192e3;
 rPa=20e-6;
 vpPa=0.316;
@@ -12,7 +12,7 @@ inGain = 6;
 outGain = 11;
 
 % setup non-ASIO LYNX card
-device = 'Lynx E44';
+device = 'Lynx E44'; % = '2- Lynx E44';
 d = daq.getDevices;
 description = sprintf('DirectSound Speakers (%s)',device);
 ind = find(strcmp({d.Description},description));
@@ -26,7 +26,7 @@ fs = s.Rate;
 
 % filter filename
 thedate = ['-' datestr(now,'YYmmDD')];
-booth = 'booth3';
+booth = 'booth1';
 fn = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
 
 
@@ -39,6 +39,7 @@ queueOutputData(s,stim/outGain);
 startBackground(s);
 
 %% ANALYZE flat noise
+hold on
 noise = load(['flatNoise' thedate]);
 %noise = load('file.mat');
 %noiseAdj = mean(noise.saveData(1:end-1,1000:end-1000)*inGain,1)/rPa/vpPa;
