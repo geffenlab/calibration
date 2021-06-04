@@ -42,7 +42,7 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 1;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 5;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -86,7 +86,6 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
 whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
-%whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs) / outGain;
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 
 % Pre-allocate buffer for recorder. This is done via the 'GetAudioData'
@@ -133,7 +132,6 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
 whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
-%whiteNoiseFilt = envelopeKCW(whiteNoiseFilt,5,fs) / outGain;
 whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
 
 % Now to refill the audio buffers. Not that we need to flush the recording
