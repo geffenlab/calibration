@@ -8,18 +8,18 @@ function [FILT, fs, s] = setupAndCalibrate_CA
 delete(instrfindall);
 close all
 clear all
-
-fs = 400e3;
-input = 3;
-output = 1;
+figure
+fs = 200e3;
+input = 0;
+output = 0;
 s = startSession(fs,input,output);
 fs = s.Rate;
 
 n = 1;
 offset = 0; % this is for when the output is too loud for the nidaq
 targetVol = 70-offset;
-upperFreq = 80e3;
-lowerFreq = 300;
+upperFreq = 60e3;
+lowerFreq = 3000;
 softGain = 10;
 ref_PA = 20e-6;
 volts_per_PA = .316;
@@ -48,7 +48,9 @@ plot(f,dB);
 disp(['Total volume ' num2str(10*log10(mean(P(1:180))*(f(180)-f(1))))...
     'dB in response to flat noise.']);
 
- disp(['Total volume ' num2str(20*log10(rms(mean(resp,1)/ref_PA/volts_per_PA)))...
+resp = filtfilt(fb,fa,resp);
+resp = resp-mean(resp);
+disp(['Total volume ' num2str(20*log10(rms(mean(resp,1)/ref_PA)/volts_per_PA))...
      'dB in response to flat noise.']);
  
 daqreset;
@@ -56,7 +58,7 @@ s = startSession(fs,input,output);
 fs = s.Rate;
 pause(1);
 
-toneFs = 1000:5000:80000;
+toneFs = 5000:5000:70000;
 [RMS, dBs] = toneResponse([1000 toneFs], .1 * softGain, 1, FILT, s);
 toneDB = real( 20*log10(RMS(2:end)) );
 plot(toneFs, toneDB, 'ok');
@@ -69,8 +71,8 @@ set(gca,'TickDir','out');
 
 keyboard
 
-fn = 'E:\GitHub\filters\170818_2Pbooth_300-80k_fs192k';
+fn = 'D:\GitHub\filters\20210324_OpenEphys_3k-60k_fs200k_N1_NV';
 title(fn)
 Fs = fs;
-save(fn,'FILT','Fs');
-print(f1,[fn '.png'],'-dpng','-r300');
+save([fn '.mat'],'FILT','Fs');
+print([fn '.png'],'-dpng','-r300');
