@@ -28,21 +28,21 @@ clear; close all;
 % array output from the PsychPortAudio('GetDevices') subfunction. Pair
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
-playbackDevice = 'Speakers (Lynx E44)';
-recordingDevice = 'Record 01+02 (2- Lynx E44)';
+playbackDevice = 'Speakers (3- Lynx E44)';
+recordingDevice = 'Record 01+02 (3- Lynx E44)';
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
-upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
+upperFreq = 50e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
 fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
 vpPa=.316;              % Volts/Pascal conversion to get dB
 inGain = 6;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
-testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
+testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 4;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 16;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -62,10 +62,12 @@ InitializePsychSound;
 % the 'contains' function, so this warning here is suppressed.
 devList = PsychPortAudio('GetDevices');
 windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'MME')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
+windowsDSIdx2 = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'WASAPI')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
-playbackIdx = intersect(playbackIdx,windowsDSIdx);
+playbackIdx = intersect(playbackIdx,windowsDSIdx2);
+
 recorderIdx = intersect(recorderIdx,windowsDSIdx);
 
 % Open audio channels. Set appropriate input params so that one is playback
@@ -82,10 +84,12 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % start the recorder first. PTB gives us timestamps for almost everything
 % so we can record slightly more and align the data later.
 
+%PsychPortAudio('GetAudioData',ph.recorder);
 % Create a random white noise tone. PTB accepts matrices of sound data
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
 whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
+whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs);
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 
 % Pre-allocate buffer for recorder. This is done via the 'GetAudioData'
@@ -96,6 +100,7 @@ PsychPortAudio('GetAudioData',ph.recorder,testSoundDuration + recorderBuffer,tes
 
 % Start recording and playback
 t.rec  = PsychPortAudio('Start',ph.recorder,1);
+%tic; pause(testSoundDuration + recorderBuffer); toc
 t.play = PsychPortAudio('Start',ph.player,1);
 
 % Wait for duration. Then gather audio data from recorder and stop it.
@@ -119,7 +124,8 @@ noiseAdj = dataForFilter(1,1000:end-1000) * inGain / rPa / vpPa;
 overlapScale = isOctave * 1024 + ~isOctave * 1;
 [P,f] = pwelch(noiseAdj,1024,120/overlapScale,[],fs,'onesided');
 dB = 10*log10(P);
-f1 = figure(1); clf; hold on
+f1 = figure(1); clf; 
+hold on
 plot(f,dB);
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
@@ -132,6 +138,7 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
 whiteNoiseFilt = randn(1,fs*testSoundDuration) / outGain;
+whiteNoiseFilt = envelopeKCW(whiteNoiseFilt,5,fs);
 whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
 
 % Now to refill the audio buffers. Not that we need to flush the recording
@@ -168,7 +175,12 @@ disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
 % tones will be within the frequency range of our filter (specified in the
 % parameters at the top of the script).
 
-toneFs = 3500:5000:65000;
+%toneFs = linspace(lowerFreq,upperFreq, 12);% 3500:5000:65000;
+%toneFs = linspace(14000,16000, 12);% 3500:5000:65000;
+toneFs = 2.^linspace(log2(6000),log2(28000), 30);% 3500:5000:65000;
+
+toneFs(8) = 8800;
+
 toneDuration = 2;
 recTones = cell(length(toneFs),1);
 for ii = 1:length(toneFs)
@@ -224,7 +236,7 @@ for ii = 1:length(recTones)
     RMS(ii) = sqrt(mean( (tonesf(0.5 * fs:end-2*fs)/rPa/vpPa).^2)...
         - noise_ms);
 end
-db = real( 20*log10(RMS) );
+db = real( 20*log10(RMS));
 plot(toneFs,db,'o')
 
 %% Close audio devices
@@ -238,7 +250,7 @@ booth = ['booth' num2str(boothNumber)];
 filtername = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
 
 % Save filter and figure
-save('-6',[filtername '.mat'],'FILT')
+save([filtername '.mat'],'FILT')
 
 xlabel('Frequency (Hz)')
 ylabel('dB')
