@@ -31,11 +31,11 @@ clear; close all;
 % ('Record 01 ... Lynx').
 
 playbackDevice = 'Speakers (Lynx E44)';
-recordingDevice = 'Record 01+02 (Lynx E44)';
+recordingDevice = 'Record 01+02 (2- Lynx E44)'; %% for Booths 1/2 the cable is attached to Booth 2, so 2- Lynx
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
-upperFreq = 50e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
+upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
 fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
 vpPa=.316;              % Volts/Pascal conversion to get dB
@@ -65,6 +65,7 @@ InitializePsychSound;
 devList = PsychPortAudio('GetDevices');
 windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'MME')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
 windowsDSIdx2 = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'WASAPI')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
+
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
@@ -90,6 +91,7 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % Create a random white noise tone. PTB accepts matrices of sound data
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
+
 whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
 whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs);
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
@@ -177,11 +179,9 @@ disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
 % tones will be within the frequency range of our filter (specified in the
 % parameters at the top of the script).
 
-%toneFs = linspace(lowerFreq,upperFreq, 12);% 3500:5000:65000;
-%toneFs = linspace(14000,16000, 12);% 3500:5000:65000;
-toneFs = 2.^linspace(log2(6000),log2(28000), 30);% 3500:5000:65000;
-
-toneFs(8) = 8800;
+toneFs = linspace(lowerFreq,upperFreq, 12);% 3500:5000:65000;
+% toneFs = linspace(14000,16000, 12);% 3500:5000:65000;
+% toneFs = 2.^linspace(log2(6000),log2(28000), 30);% 3500:5000:65000;
 
 toneDuration = 2;
 recTones = cell(length(toneFs),1);
