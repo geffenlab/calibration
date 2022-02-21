@@ -8,18 +8,17 @@
 % Specifically, this script will do the follwing:
 % 1. Play white noise and create a filter using the recorded audio.
 % 2. Play filtered white noise to verify that filter works.
-% 3. Play filtered pure tones to verify that filter works.
+% 3. Play filtered pure tones to verify that filter34 works.
 %
-% Since PTB will be used for most of the audio interfacing, here is a
+% Since PTB will be used for most of the audio interfacing, here is a3
 % convenient link to the PTB audio documentation:
 % http://docs.psychtoolbox.org/PsychPortAudio
 %
 % NOTE: There is some weird time discrepancy between Matlab/PTB/audio. The
 % pause function seems to pause for the correct amount of time, but the
 % audio plays for much longer...
-PsychPortAudio('Close');
 
-clear; close all;
+clear; close all; PsychPortAudio('Close');
 %% Parameter
 %
 % These parameters determine everything that the script does. Thus, these
@@ -31,9 +30,14 @@ clear; close all;
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
 
+% device names
 playbackDevice = 'Speakers (2- Lynx E44)';
-recordingDevice = 'Record 01+02 (Lynx E44)';
+recordingDevice = 'Record 01+02 (2- Lynx E44)'; %% for Booths 1/2 the cable is attached to Booth 2, so 2- Lynx
 
+% booth number (make sure it matches playbackDevice)
+boothNumber = 2;        % Which booth we are calibrating, used to generate filter name
+
+% filter parameters
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
 upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
@@ -45,7 +49,6 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 6;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -66,11 +69,11 @@ InitializePsychSound;
 devList = PsychPortAudio('GetDevices');
 windowsDSIdx = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'MME')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
 windowsDSIdx2 = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'WASAPI')),{devList(:).HostAudioAPIName},'UniformOutput',false))); %#ok<STREMP>
+
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
-playbackIdx = intersect(playbackIdx,windowsDSIdx2);
-
+playbackIdx = intersect(playbackIdx,windowsDSIdx);
 recorderIdx = intersect(recorderIdx,windowsDSIdx);
 
 % Open audio channels. Set appropriate input params so that one is playback
@@ -91,6 +94,7 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % Create a random white noise tone. PTB accepts matrices of sound data
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
+
 whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
 whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs);
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
@@ -129,7 +133,7 @@ overlapScale = isOctave * 1024 + ~isOctave * 1;
 dB = 10*log10(P);
 f1 = figure(1); clf; 
 hold on
-plot(f,dB);
+plot(f,dB); drawnow;
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
@@ -168,7 +172,9 @@ dataForFilter = recFiltNoise(fs : length(recFiltNoise) - 2*fs);
 noiseAdj = dataForFilter(1,1000:end-1000) * inGain / rPa / vpPa;
 [P,f] = pwelch(noiseAdj,1024,120/overlapScale,[],fs,'onesided');
 dB = 10*log10(P);
-plot(f,dB);
+plot(f,dB); drawnow;
+plot([lowerFreq lowerFreq],[-20 80],'k--');
+plot([upperFreq upperFreq],[-20 80],'k--');
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
@@ -189,7 +195,7 @@ for ii = 1:length(toneFs)
     % Generate tone and print a status update to let us know what's going
     % on!
     f = toneFs(ii);
-    fprintf('Playing tone %02d/%02d @ %dHz\n',ii,length(toneFs),f);
+    fprintf('Playing tone %02d/%02d @ %gHz\n',ii,length(toneFs),f);
     tonef = tone(f,1,toneDuration,fs);
     tonef = envelopeKCW(tonef,5,fs) / outGain;
     tonef = conv(tonef,FILT,'same');
@@ -238,7 +244,8 @@ for ii = 1:length(recTones)
         - noise_ms);
 end
 db = real( 20*log10(RMS));
-plot(toneFs,db,'o')
+plot(toneFs,db,'o');
+drawnow;
 
 %% Close audio devices
 PsychPortAudio('Close');
