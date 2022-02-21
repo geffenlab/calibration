@@ -29,6 +29,7 @@ clear; close all;
 % array output from the PsychPortAudio('GetDevices') subfunction. Pair
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
+
 playbackDevice = 'Speakers (3- Lynx E44)';
 recordingDevice = 'Record 01+02 (3- Lynx E44)';
 

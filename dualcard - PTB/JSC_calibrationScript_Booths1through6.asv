@@ -19,11 +19,11 @@
 % audio plays for much longer...
 PsychPortAudio('Close');
 
-clear; close all;
+clear; close all;5
 %% Parameter
 %
 % These parameters determine everything that the script does. Thus, these
-% are the only variables that shou5ld ever need changing (bar discovery of a
+% are the only variables that should ever need changing (bar discovery of a
 % bug in the code D:).
 
 % These are strings corresponding to the DeviceName field in the struct
