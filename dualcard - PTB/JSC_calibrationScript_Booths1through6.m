@@ -30,9 +30,14 @@ clear; close all;
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
 
-playbackDevice = 'Speakers (Lynx E44)';
+% device names
+playbackDevice = 'Speakers (2- Lynx E44)';
 recordingDevice = 'Record 01+02 (2- Lynx E44)'; %% for Booths 1/2 the cable is attached to Booth 2, so 2- Lynx
 
+% booth number (make sure it matches playbackDevice)
+boothNumber = 2;        % Which booth we are calibrating, used to generate filter name
+
+% filter parameters
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
 upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
@@ -44,7 +49,6 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 1;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -69,10 +73,11 @@ windowsDSIdx2 = find(cell2mat(cellfun(@(X)~isempty(strfind(X,'WASAPI')),{devList
 playbackIdx = find(cell2mat(cellfun(@(X)strcmp(X,playbackDevice),{devList(:).DeviceName},'UniformOutput',false)));
 recorderIdx = find(cell2mat(cellfun(@(X)strcmp(X,recordingDevice),{devList(:).DeviceName},'UniformOutput',false)));
 
-playbackIdx = intersect(playbackIdx,windowsDSIdx2);
-
+playbackIdx = intersect(playbackIdx,windowsDSIdx);
 recorderIdx = intersect(recorderIdx,windowsDSIdx);
 
+
+%%
 % Open audio channels. Set appropriate input params so that one is playback
 % and the other is recording. The third parameter determins mode (1 = play,
 % 2 = record). See PTB docs for more information.
@@ -131,6 +136,7 @@ dB = 10*log10(P);
 f1 = figure(1); clf; 
 hold on
 plot(f,dB);
+drawnow;
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
@@ -169,7 +175,9 @@ dataForFilter = recFiltNoise(fs : length(recFiltNoise) - 2*fs);
 noiseAdj = dataForFilter(1,1000:end-1000) * inGain / rPa / vpPa;
 [P,f] = pwelch(noiseAdj,1024,120/overlapScale,[],fs,'onesided');
 dB = 10*log10(P);
-plot(f,dB);
+plot(f,dB); drawnow;
+plot([lowerFreq lowerFreq],[-20 80],'k--');
+plot([upperFreq upperFreq],[-20 80],'k--');
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
@@ -239,7 +247,8 @@ for ii = 1:length(recTones)
         - noise_ms);
 end
 db = real( 20*log10(RMS));
-plot(toneFs,db,'o')
+plot(toneFs,db,'o');
+drawnow;
 
 %% Close audio devices
 PsychPortAudio('Close');
