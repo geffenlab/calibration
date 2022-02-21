@@ -32,10 +32,11 @@ clear; close all; PsychPortAudio('Close');
 
 % device names
 playbackDevice = 'Speakers (2- Lynx E44)';
-recordingDevice = 'Record 01+02 (2- Lynx E44)'; %% for Booths 1/2 the cable is attached to Booth 2, so 2- Lynx
+% recordingDevice = 'Record 01+02 (2- Lynx E44)'; % for booths 1-2, 3-4, device is 2-
+recordingDevice = 'Record 01+02 (Lynx E44)'; % for booths 5-6, 3-4, device is not 2-
 
 % booth number (make sure it matches playbackDevice)
-boothNumber = 2;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 6;        % Which booth we are calibrating, used to generate filter name
 
 % filter parameters
 targetVol = 70;         % Desired volume of filtered output
