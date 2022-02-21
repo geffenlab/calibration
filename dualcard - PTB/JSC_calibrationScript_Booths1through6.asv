@@ -31,7 +31,7 @@ clear; close all; PsychPortAudio('Close');
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
 
-playbackDevice = 'Speakers (2- Lynx E44)';
+playbackDevice = 'Speakers (Lynx E44)';
 recordingDevice = 'Record 01+02 (2- Lynx E44)'; %% for Booths 1/2 the cable is attached to Booth 2, so 2- Lynx
 
 targetVol = 70;         % Desired volume of filtered output
