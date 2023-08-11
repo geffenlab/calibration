@@ -13,16 +13,16 @@ io.fs = 192e3;
 fs = io.fs;
 io.ref_Pa=20e-6;
 io.VperPa=0.316;
-InitializePsychSound(1);pause(1); 
-io.h = PsychPortAudio('Open', [], 3, 3, io.fs, [1 1]);
+InitializePsychSound(1);pause(1);
+io.h = PsychPortAudio('Open', [], 3, 3, io.fs, [1]);
 
 n = 10;
 % offset = 10; % this is for when the output is too loud for the nidaq
 % SCoffset = 10;
-io.dur = 2;
+io.dur = 20;
 targetVol = 70;
-upperFreq = 80e3;
-lowerFreq = 3000;
+upperFreq = 60e3;
+lowerFreq = 5000;
 softGain = 10;
 ref_PA = 20e-6;
 volts_per_PA = .316;
@@ -36,7 +36,7 @@ disp('Testing flat noise');
 % stim = softGain * randn(io.fs, 1)/sqrt(2)/10; % the sqrt factor was added
 % incorrectly originally to compensate for SPL conversions between noise and
 % tones.  Now compensation happens in getResponse_sess
-stim = softGain * randn(round(io.fs), 1)/10;
+stim = softGain * randn(round(io.fs*io.dur), 1)/10;
 % stim = stim.*10^(-(offset/20));
 [resp, P, f, dB] = getResponse_sess_SC(stim,n,io);
 resp = mean(resp);
@@ -55,8 +55,8 @@ plot(f,dB);
 disp(['Total volume ' num2str(10*log10(mean(P(1:180))*(f(180)-f(1))))...
     'dB in response to flat noise.']);
 
- disp(['Total volume ' num2str(20*log10(rms(mean(resp)/ref_PA/volts_per_PA)))...
-     'dB in response to flat noise.']);
+disp(['Total volume ' num2str(20*log10(rms(mean(resp)/ref_PA/volts_per_PA)))...
+    'dB in response to flat noise.']);
 
 toneio.freqs = 3500:10000:100000;
 [RMS, dBs] = toneResponse_SC(toneio.freqs, .1 * softGain, 1, FILT, io);

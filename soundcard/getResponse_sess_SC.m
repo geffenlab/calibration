@@ -1,6 +1,6 @@
 function [reps, P, f, dB] = getResponse_sess_SC(stim, nreps, s)
 
-stim = stim/11;
+stim = stim/5/1.1;
 % Some checks
 if size(stim,2) == 1
     stim = stim';
