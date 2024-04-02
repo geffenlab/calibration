@@ -29,7 +29,7 @@ clear; close all;
 % 'Speakers Lynx ...' ('Speakers 2- Lynx ...') with 'Record 01 ... 2- Lynx'
 % ('Record 01 ... Lynx').
 playbackDevice = 'Speakers (Lynx E44)';
-recordingDevice = 'Record 01+02 (2- Lynx E44)';
+recordingDevice = 'Record 01+02 (Lynx E44)';
 
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
@@ -42,7 +42,7 @@ outGain = 11;           % The speakers multiply output by 11, so need to scale b
 
 testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 4;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 14;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -238,7 +238,7 @@ booth = ['booth' num2str(boothNumber)];
 filtername = sprintf('%s%s-filter-%03dkHz',booth,thedate,fs/1e3);
 
 % Save filter and figure
-save('-6',[filtername '.mat'],'FILT')
+save([filtername '.mat'],'FILT')
 
 xlabel('Frequency (Hz)')
 ylabel('dB')
