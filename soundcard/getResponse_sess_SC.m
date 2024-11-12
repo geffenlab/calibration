@@ -16,7 +16,7 @@ for i = 1:nreps
     PsychPortAudio('FillBuffer', s.h, output); % fill buffer
     t.play = PsychPortAudio('Start', s.h, 1);
     % Grab the data in the buffer at the end
-    pause(s.dur+1);
+    pause(5);
     [data, ~, ~, t.rec] = PsychPortAudio('GetAudioData', s.h);
     %     data = data(10000:80000);
     data = data*11;

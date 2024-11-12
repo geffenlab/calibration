@@ -9,17 +9,17 @@ close all
 clear all
 clc
 
-io.fs       = 192e3;
-fs          = io.fs;
-io.ref_Pa   = 20e-6;
-io.VperPa   = 0.316;
+io.fs = 192e3;
+fs = io.fs;
+io.ref_Pa=20e-6;
+io.VperPa=0.316;
 InitializePsychSound(1);pause(1); 
 io.h = PsychPortAudio('Open', [], 3, 3, io.fs, [1 1]);
 
-n = 1;
+n = 10;
 % offset = 10; % this is for when the output is too loud for the nidaq
 % SCoffset = 10;
-io.dur = 20;
+io.dur = 2;
 targetVol = 70;
 upperFreq = 80e3;
 lowerFreq = 3000;
@@ -32,12 +32,11 @@ volts_per_PA = .316;
 % preallocate recording buffer
 PsychPortAudio('GetAudioData', io.h, io.dur);
 
-%%
 disp('Testing flat noise');
 % stim = softGain * randn(io.fs, 1)/sqrt(2)/10; % the sqrt factor was added
 % incorrectly originally to compensate for SPL conversions between noise and
 % tones.  Now compensation happens in getResponse_sess
-stim = softGain * randn(round(io.fs)*io.dur, 1)/10;
+stim = softGain * randn(round(io.fs), 1)/10;
 % stim = stim.*10^(-(offset/20));
 [resp, P, f, dB] = getResponse_sess_SC(stim,n,io);
 resp = mean(resp);
@@ -46,7 +45,7 @@ plot(f,dB,'r');
 disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
-%%
+
 FILT = makeFilter(P, f, io.fs, lowerFreq, upperFreq, targetVol);
 disp('Testing filtered noise:');
 % stim = softGain * randn(round(io.fs), 1)/10;
@@ -72,7 +71,7 @@ hold off
 
 %
 keyboard
-fn = 'D:\GitHub\filters\240613_blueEbooth_LynxE44_3k-80k_fs192k';
+fn = 'D:\GitHub\filters\180214_blueEbooth_LynxE44_3k-80k_fs192k';
 title(fn)
 Fs = fs;
 save(fn,'FILT','Fs');
