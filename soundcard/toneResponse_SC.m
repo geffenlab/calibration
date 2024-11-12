@@ -21,6 +21,7 @@ for fInd = 1:length(freqs)
     
 %     tone = amp * genTone(f, tLen, rampTime, pa.fs);
     t = tone(f,1,0.4,pa.fs);
+    pa.dur = 0.4;
     t = envelopeKCW(t,5,pa.fs);
     tonef = conv(t,FILT,'same');
 %     tonef = filter(FILT, 1, t);
