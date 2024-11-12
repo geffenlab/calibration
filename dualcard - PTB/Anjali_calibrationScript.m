@@ -17,7 +17,7 @@
 % NOTE: There is some weird time discrepancy between Matlab/PTB/audio. The
 % pause function seems to pause for the correct amount of time, but the
 % audio plays for much longer...
-
+PsychPortAudio('Close');
 clear; close all;
 %% Parameter
 %
@@ -42,9 +42,9 @@ vpPa=.316;              % Volts/Pascal conversion to get dB
 inGain = 6;             % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
-testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
+testSoundDuration = 20; % How long to play the white noise for making the filter in seconds
 isOctave = false;        % Boolean to tell if running from Octave. If true, rescales overlap in pwelch (stupid Octave/Matlab incompatibility)
-boothNumber = 14;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 17;        % Which booth we are calibrating, used to generate filter name
 
 %% Need to load signaling package if using Octave
 if isOctave
@@ -98,17 +98,19 @@ PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 % subfunction. Refer to PTB docs for more details. Give the recorder an
 % extra 2 seconds of buffer space over the player
 recorderBuffer = 2;
-PsychPortAudio('GetAudioData',ph.recorder,testSoundDuration + recorderBuffer,testSoundDuration + recorderBuffer);
+recorderBuffer1=testSoundDuration + recorderBuffer;%new line
+recorderBuffer2=testSoundDuration + recorderBuffer+1;%new line
+PsychPortAudio('GetAudioData',ph.recorder,recorderBuffer1,recorderBuffer1,0);
 
 % Start recording and playback
 t.rec  = PsychPortAudio('Start',ph.recorder,1);
 %tic; pause(testSoundDuration + recorderBuffer); toc
 t.play = PsychPortAudio('Start',ph.player,1);
-
+pause(recorderBuffer1)
 % Wait for duration. Then gather audio data from recorder and stop it.
 % Otherwise it will continue to record and overwrite the data in its
 % buffer!
-tic; WaitSecs(testSoundDuration + recorderBuffer); toc
+% tic; WaitSecs(testSoundDuration + recorderBuffer); toc
 [recWhiteNoise,~,~,t.recGet] = PsychPortAudio('GetAudioData',ph.recorder);
 PsychPortAudio('Stop',ph.recorder);
 
