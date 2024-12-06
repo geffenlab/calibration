@@ -162,7 +162,7 @@ FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
 %
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
-whiteNoiseFilt = targetAmp * randn(1,fs*testSoundDuration);
+whiteNoiseFilt = sqrt(2) * targetAmp * randn(1,fs*testSoundDuration);
 whiteNoiseFilt = envelopeKCW(whiteNoiseFilt,rampTime,fs) / outGain;
 whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
 
