@@ -36,10 +36,10 @@ recordingDevice = 'Record 01+02 (2- Lynx E44)'; % for booths 1-2, 3-4, device is
 % recordingDevice = 'Record 01+02 (Lynx E44)'; % for booths 5-6, device is not 2-
 
 % booth number (make sure it matches playbackDevice)
-boothNumber = 6;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 3;        % Which booth we are calibrating, used to generate filter name
 
 % filter parameters
-targetAmp = .1;        % Amp of sin wave that should result in tone of targetVol dB
+targetAmp = 1;          % Amp of sin wave that should result in tone of targetVol dB
 targetVol = 70;         % Desired volume of filtered output
 lowerFreq = 3e3;        % Lower freq cutoff for filter
 upperFreq = 70e3;       % Upper freq cutoff for filter (dB of filtered audio between low/upp should be ~equal)
@@ -113,7 +113,7 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 % where each row corresponds to a channel. Also scale by the sound output
 % gain.
 
-whiteNoise = targetAmp * randn(1,fs*testSoundDuration);
+whiteNoise = randn(1,fs*testSoundDuration);
 whiteNoise = envelopeKCW(whiteNoise,rampTime,fs) / outGain;
 PsychPortAudio('FillBuffer',ph.player,whiteNoise);
 
@@ -156,13 +156,14 @@ disp(['Total volume ' num2str(10*log10(mean(P)*(f(end)-f(1))))...
     'dB in response to flat noise.']);
 
 % make a filter
-FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,targetVol);
+filterTargetVol = targetVol + 20*log10(1/targetAmp);
+FILT = makeFilter(P,f,fs,lowerFreq,upperFreq,filterTargetVol);
 
 %% Step 2
 %
 % We generate a new sample of white noise and filter it using the filter
 % from above. We then record again and plot the filtered results.
-whiteNoiseFilt = targetAmp * randn(1,fs*testSoundDuration);
+whiteNoiseFilt = randn(1,fs*testSoundDuration);
 whiteNoiseFilt = envelopeKCW(whiteNoiseFilt,rampTime,fs) / outGain;
 whiteNoiseFilt = conv(whiteNoiseFilt,FILT,'same');
 

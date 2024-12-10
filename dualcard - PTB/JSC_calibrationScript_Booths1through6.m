@@ -15,10 +15,10 @@
 % http://docs.psychtoolbox.org/PsychPortAudio
 %
 % NOTE: There is some weird time discrepancy between Matlab/PTB/audio. The
-% pause function seems to pause for the correct amount of time, but the
+% pause function seems to pause for the correct amount ofFailed to open PortAudio audio device. time, but the
 % audio plays for much longer...
 
-clear; close all; PsychPortAudio('Close');
+clear all; close all; %PsychPortAudio('Close');
 %% Parameter
 %
 % These parameters determine everything that the script does. Thus, these
@@ -32,11 +32,11 @@ clear; close all; PsychPortAudio('Close');
 
 % device names
 playbackDevice = 'Speakers (2- Lynx E44)';
-% recordingDevice = 'Record 01+02 (2- Lynx E44)'; % for booths 1-2, 3-4, device is 2-
-recordingDevice = 'Record 01+02 (Lynx E44)'; % for booths 5-6, 3-4, device is not 2-
+recordingDevice = 'Record 01+02 (2- Lynx E44)'; % for booths 1-2, 3-4, recording device is (2- Lynx E44)
+% recordingDevice = 'Record 01+02 (Lynx E44)'; % for booths 5-6 recording device is (Lynx E44)
 
 % booth number (make sure it matches playbackDevice)
-boothNumber = 6;        % Which booth we are calibrating, used to generate filter name
+boothNumber = 999;        % Which booth we are calibrating, used to generate filter name
 
 % filter parameters
 targetVol = 70;         % Desired volume of filtered output
@@ -46,6 +46,7 @@ fs = 192e3;             % Playback and recording sampling frequency
 rPa=20e-6;              % Refers to assumed pressure (recorded?) in silence
 vpPa=.316;              % Volts/Pascal conversion to get dB
 inGain = 6;             % Mic multiplies input by 6 (?)
+%inGain = 10.93;         % Mic multiplies input by 6 (?)
 outGain = 11;           % The speakers multiply output by 11, so need to scale beforehand
 
 testSoundDuration = 10; % How long to play the white noise for making the filter in seconds
@@ -98,6 +99,17 @@ ph.recorder = PsychPortAudio('Open',devList(recorderIdx).DeviceIndex,2,3,fs,1);
 
 whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
 whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs);
+% for some reason the speakers are silent until you try to fill the buffer
+% with the wrong number of channels but plays noise after you get the
+% resulting error. This is a workaround...
+try
+    PsychPortAudio('FillBuffer',ph.player,[whiteNoiseTone;zeros(size(whiteNoiseTone))]);
+catch
+    disp('hi');
+end
+
+%whiteNoiseTone = randn(1,fs*testSoundDuration) / outGain;
+%whiteNoiseTone = envelopeKCW(whiteNoiseTone,5,fs);
 PsychPortAudio('FillBuffer',ph.player,whiteNoiseTone);
 
 % Pre-allocate buffer for recorder. This is done via the 'GetAudioData'
